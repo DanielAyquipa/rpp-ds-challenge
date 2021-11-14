@@ -5,12 +5,14 @@ Created on Sun Nov 14 12:06:11 2021
 @author: danie
 """
 
-import os
 import pandas as pd
+import os
+import sys
 
-os.chdir(r"C:\Users\danie\Documents\GitHub\rpp-ds-challenge")
+dirname = os.path.abspath(os.path.dirname(sys.argv[0]))
+filename = os.path.join(dirname, 'data/ds_challenge_2021.csv')
 
-df = pd.read_csv("ds_challenge_2021.csv")
+df = pd.read_csv(filename)
 
 df.columns
 
