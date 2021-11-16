@@ -13,9 +13,14 @@ import os
 from functools import reduce
 from kmodes.kprototypes import KPrototypes
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_samples, silhouette_score
 import matplotlib.cm as cm
 from imblearn.over_sampling import SMOTE
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split,RandomizedSearchCV
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import silhouette_score,classification_report
 
 # Import data
 dirname = os.path.abspath(os.path.dirname(__file__))
@@ -515,4 +520,79 @@ for i in categorical_features:
     df_features.drop([i],axis=1,inplace=True)
 print("Listo")
 
- 
+# Train/Test split 
+X = df_features[[ i for i in df_features.columns if i != "fraude"]]
+y = df_features['fraude']
+X_train, X_test, y_train, y_test =  train_test_split(X, y, test_size=0.33, random_state=42)
+print("Antes de hacer OverSampling, # de registros con fraude: {}".format(sum(y_train == 1)))
+print("Antes de hacer OverSampling, # de registros sin fraude: {}".format(sum(y_train == 0)))
+
+# SMOTE - TECNICA DE OVERSAMPLING
+sm = SMOTE(random_state = 2)
+X_train_res, y_train_res = sm.fit_resample(X_train, y_train.ravel())
+
+print('Después de hacer OverSampling, las dimnesiones del train_X: {}'.format(X_train_res.shape))
+print('Después de hacer OverSampling, las dimnesiones del train_y: {}'.format(y_train_res.shape)) 
+print("Después de hacer OverSampling, # de registros con fraude: {}".format(sum(y_train_res == 1)))
+print("Después de hacer OverSampling, # de registros sin fraude: {}".format(sum(y_train_res == 0)))
+
+# Usando un modelo base line - Regresión Logística
+scaler = MinMaxScaler()
+model_lr = LogisticRegression(random_state=42)
+pipeline_lr = Pipeline(steps=[('scaler', scaler),
+                              ('model', model_lr)])
+pipeline_lr.fit(X_train_res, y_train_res)
+predictions_lr_train = pipeline_lr.predict(X_train_res)
+predictions_lr_test = pipeline_lr.predict(X_test)
+
+print(classification_report(y_train_res,predictions_lr_train))
+print(classification_report(y_test,predictions_lr_test))
+
+# Usando un modelo - Random Forest
+random_grid = {
+                "n_estimators" : [500],
+                "max_depth": [3, 5, 10, 15],
+                "min_samples_split": [2, 4, 8],
+                "min_samples_leaf": [4, 6, 8],
+                "criterion": ["gini"]
+                }
+model_rf = RandomForestClassifier(random_state=42)
+rf_random = RandomizedSearchCV(estimator = model_rf,
+                               param_distributions = random_grid,
+                               n_iter = 100, cv = 3, verbose=2, n_jobs = 4)
+rf_random.fit(X_train_res, y_train_res)
+
+predictions_rf_train = rf_random.predict(X_train_res)
+predictions_rf_test = rf_random.predict(X_test)
+
+print(classification_report(y_train_res,predictions_lr_train))
+print(classification_report(y_test,predictions_lr_test))
+
+# Feature Importance
+importance = rf_random.best_estimator_.feature_importances_
+
+df_importances = pd.DataFrame({'features':rf_random.best_estimator_.feature_names_in_,
+                               'importance':importance}).set_index('features').sort_values(by='importance')
+
+fig, ax = plt.subplots(1, 1)
+fig.set_size_inches(15, 12)
+ax.barh(df_importances.index,
+        df_importances.importance)
+plt.show()
+
+# ----------------------------------------
+# Conclusiones
+# ----------------------------------------
+
+# En el exploratorio de los datos, se encontró que las clientes más fraudulentos han realizado un número de transacciones mayor
+# durante el mes. Además, suelen hacerlo de diversos establecimientos, en diferentes fechas (diferentes días) y tienden a usar
+# distintos tipos de dispositivos. Por otro lado, el histograma indica que el monto de transacción de los clientes fraudulentos
+# es mayor que los no fraudulentos (ver el histograma) y hay una cantidad muy pequeña de clientes prime que son fraudulentos.
+
+
+
+
+
+
+
+
