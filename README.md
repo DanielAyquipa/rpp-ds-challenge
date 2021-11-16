@@ -1,8 +1,8 @@
 # rpp-ds-challenge
 
-La carpeta data contiene un fichero .csv con los datos del modelo. <\n>
-La carpeta src contiene un fichero .py con la solución al ds-challenge. <\n>
-El fichero requirements.txt contiene las versiones de los módulos de python que se usan en el .py <\n>
+* La carpeta data contiene un fichero .csv con los datos del modelo.
+* La carpeta src contiene un fichero .py con la solución al ds-challenge.
+* El fichero requirements.txt contiene las versiones de los módulos de python que se usan en el .py.
 
 ### Conclusiones
 
