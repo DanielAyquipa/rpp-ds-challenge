@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#! /usr/bin/python
 """
 Created on Sun Nov 14 12:06:11 2021
 
@@ -26,9 +26,6 @@ from sklearn.metrics import silhouette_score,classification_report
 dirname = os.path.abspath(os.path.dirname(__file__))
 filename = os.path.join(dirname, '../data/ds_challenge_2021.csv')
 data = pd.read_csv(filename)
-
-# Features
-print(data.columns)
 
 # Features
 print("Columns: ", data.columns)
